@@ -1,9 +1,9 @@
 package src.main.java;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -230,8 +230,45 @@ public class GraphCutTextureSynthesis {
         long startTime = System.nanoTime();
         System.out.println("Starting Graph Cut Texture Synthesis...");
 
-        BufferedImage sourceImage = ImageIO.read(new File("/Users/akshithreddyc/Desktop/Workplace/GraphCut/src.jpeg"));
-        BufferedImage targetImage = ImageIO.read(new File("/Users/akshithreddyc/Desktop/Workplace/GraphCut/target.jpeg"));
+        Properties prop = new Properties();
+        try {
+            FileInputStream configInput = new FileInputStream("config.properties");
+            prop.load(configInput);
+            configInput.close();
+        } catch (IOException e) {
+            System.out.println("Error reading from the config.properties file");
+            e.printStackTrace();
+            return;
+        }
+
+        String sourceImagePath = prop.getProperty("sourceImage");
+        String targetImagePath = prop.getProperty("targetImage");
+        String outputImagePath = prop.getProperty("outputImage");
+        int sourceTopLeftX = Integer.parseInt(prop.getProperty("sourceTopLeftX", "9"));
+        int sourceTopLeftY = Integer.parseInt(prop.getProperty("sourceTopLeftY", "9"));
+        int sourceBottomRightX = Integer.parseInt(prop.getProperty("sourceBottomRightX", "39"));
+        int sourceBottomRightY = Integer.parseInt(prop.getProperty("sourceBottomRightY", "39"));
+        int targetTopLeftX = Integer.parseInt(prop.getProperty("targetTopLeftX", "69"));
+        int targetTopLeftY = Integer.parseInt(prop.getProperty("targetTopLeftY", "69"));
+        int targetBottomRightX = Integer.parseInt(prop.getProperty("targetBottomRightX", "99"));
+        int targetBottomRightY = Integer.parseInt(prop.getProperty("targetBottomRightY", "99"));
+
+        if (sourceImagePath == null || targetImagePath == null || outputImagePath == null) {
+            System.out.println("Please ensure all paths are correctly set in config.properties");
+            return;
+        }
+
+        BufferedImage sourceImage;
+        BufferedImage targetImage;
+        try {
+            sourceImage = ImageIO.read(new File(sourceImagePath));
+            targetImage = ImageIO.read(new File(targetImagePath));
+        } catch (IOException e) {
+            System.out.println("Error reading the images. Check their paths in config.properties");
+            e.printStackTrace();
+            return;
+        }
+
         int width = sourceImage.getWidth();
         int height = sourceImage.getHeight();
 
@@ -240,10 +277,10 @@ public class GraphCutTextureSynthesis {
         int srcNode = width * height;
         int sinkNode = srcNode + 1;
 
-        Point sourceTopLeft = new Point(9, 9);
-        Point sourceBottomRight = new Point(29, 29);
-        Point targetTopLeft = new Point(79, 79);
-        Point targetBottomRight = new Point(99, 99);
+        Point sourceTopLeft = new Point(sourceTopLeftX, sourceTopLeftY);
+        Point sourceBottomRight = new Point(sourceBottomRightX, sourceBottomRightY);
+        Point targetTopLeft = new Point(targetTopLeftX, targetTopLeftY);
+        Point targetBottomRight = new Point(targetBottomRightX, targetBottomRightY);
 
         System.out.println("Building graph...");
         for (int y = 0; y < height; y++) {
@@ -284,7 +321,12 @@ public class GraphCutTextureSynthesis {
 
         System.out.println("Generating output image...");
         BufferedImage outputImage = g.createOutputImage(sourceImage, targetImage, srcNode, sinkNode);
-        ImageIO.write(outputImage, "png", new File("outputPath"));
+        File outputFile = new File(outputImagePath);
+        try {
+            ImageIO.write(outputImage, "png", outputFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         System.out.println("Graph Cut Texture Synthesis completed!");
 
