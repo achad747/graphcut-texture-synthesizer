@@ -22,7 +22,7 @@ A standout feature in this project is the ability for users to specify patches f
 
 1. Ensure the required images are available at the designated path.
 2. Adjust the patch selection coordinates to fit your requirements.
-3. Launch the main method within the `src.main.java.GraphCutTextureSynthesis` class.
+3. Launch the main method within the `GraphCutTextureSynthesis` class.
 4. The synthesized image is stored as `output.png`.
 
 ## Results:
